@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+
+  <style>
+    body {margin: 0;}
+    canvas {display: block;}
+  </style>
+  
+</head>
+<body>
+
+<script src="./three.js"></script>
+<script type="module">
+
+import * as THREE from 'https://unpkg.com/three@0.122.0/build/three.module.js';
+import { OrbitControls } from 'https://unpkg.com/three@0.122.0/examples/jsm/controls/OrbitControls.js';
+
+const scene = new THREE.Scene();
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize( window.innerWidth, window.innerHeight );
+document.body.appendChild( renderer.domElement );
+
+const backgroundColor = new THREE.Color('midnightblue')
+const lineColor = new THREE.Color('yellow');
+const surfaceColor = new THREE.Color('silver');
+const XYZLineColor = new THREE.Color('#eaeaea')
+
+scene.background = backgroundColor;
+scene.fog = new THREE.Fog(backgroundColor, 1800, 4200);
+
+// 랜덤 정수 얻는 함수
+const getRandomInt = (min, max) => {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+
+// AMOUNT 값 대로 카메라를 생성하는 함수
+// const cameras = [];
+const AMOUNT = 1;
+const ASPECT_RATIO = window.innerWidth / window.innerHeight;
+const WIDTH = ( window.innerWidth / AMOUNT ) * window.devicePixelRatio;
+const HEIGHT = ( window.innerHeight / AMOUNT ) * window.devicePixelRatio;
+
+// for (let y = 0; y < AMOUNT; y++ ) {
+//   for (let x = 0; x < AMOUNT; x++) {
+//     const subcamera = new THREE.PerspectiveCamera( 45, ASPECT_RATIO, 1, 10000 );
+//     subcamera.viewport = new THREE.Vector4( Math.floor( x * WIDTH ), Math.floor( y * HEIGHT ), Math.ceil( WIDTH ), Math.ceil( HEIGHT ) );
+//     subcamera.position.x = ( x / AMOUNT ) - 0.5;
+//     subcamera.position.y = 0.5 - ( y / AMOUNT );
+//     subcamera.position.z = 1.5;
+//     subcamera.position.multiplyScalar( 2 );
+//     subcamera.lookAt( 0, 0, 0 );
+//     subcamera.updateMatrixWorld();
+//     cameras.push( subcamera );
+//   }
+// }
+
+let camera = new THREE.PerspectiveCamera(45, ASPECT_RATIO, 1, 10000);
+camera.position.x = 300;
+camera.position.y = 300;
+camera.position.z = 1800;
+
+const light = new THREE.PointLight( 0x404040, 5, 1800 );
+light.position.set( 0, 0, 0 );
+scene.add( light );
+
+// MATERIAL_AMOUNT 숫자만큼 물체 생성
+const MATERIAL_AMOUNT = 18;
+
+for (let i = 0; i < MATERIAL_AMOUNT; i++) {
+  // const geometry = new THREE.BoxBufferGeometry( getRandomInt(100, 300), getRandomInt(100, 300), getRandomInt(100, 300) );
+  // const geometry = new THREE.BoxBufferGeometry( 300,300,300 );
+  const geometry = new THREE.SphereBufferGeometry(getRandomInt(30, 100), 32, 32);
+  // const edges = new THREE.EdgesGeometry( geometry );
+  // const material = new THREE.LineBasicMaterial({color: lineColor});
+  const material = new THREE.MeshPhongMaterial({color: surfaceColor, opacity: 0.5, transparent: false});
+
+  // const box = new THREE.LineSegments( edges, material );
+  const box = new THREE.Mesh(geometry, material)
+
+  function scatterObjects(obj, min, max) {
+    obj.position.x = getRandomInt(min,max);
+    obj.position.y = getRandomInt(min,max);
+    obj.position.z = getRandomInt(min,max);
+  }
+  scatterObjects(box, -1000, 1000);
+
+  // function rotateObjects(obj, min, max) {
+  //   obj.rotateX(getRandomInt(min, max));
+  //   obj.rotateY(getRandomInt(min, max));
+  //   obj.rotateZ(getRandomInt(min, max));
+  // }
+  // rotateObjects(box, 0, 360);
+
+  scene.add( box );
+}
+
+function drawXYZLines(length) {
+  const material = new THREE.LineBasicMaterial({color: XYZLineColor});
+
+  const lineXPoints = [new THREE.Vector3(-length, 0, 0), new THREE.Vector3(length, 0, 0)];
+  const lineYPoints = [new THREE.Vector3(0, -length, 0), new THREE.Vector3(0, length, 0)];
+  const lineZPoints = [new THREE.Vector3(0, 0, -length), new THREE.Vector3(0, 0, length)];
+
+  let lineX = new THREE.Line(new THREE.BufferGeometry().setFromPoints(lineXPoints, material));
+  let lineY = new THREE.Line(new THREE.BufferGeometry().setFromPoints(lineYPoints, material));
+  let lineZ = new THREE.Line(new THREE.BufferGeometry().setFromPoints(lineZPoints, material));
+
+  scene.add(lineX);
+  scene.add(lineY);
+  scene.add(lineZ);
+}
+
+drawXYZLines(3200);
+
+
+const controls = new OrbitControls( camera, renderer.domElement );
+
+//controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+
+controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+controls.dampingFactor = 0.05;
+
+controls.autoRotate = true;
+controls.autoRotateSpeed = 1;
+
+controls.maxPolarAngle = 360;
+
+controls.minDistance = 1;
+controls.maxDistance = 10000;
+
+function animate() {
+  requestAnimationFrame( animate );
+  controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+
+  // camera.position.x += 1;
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+// renderer.render(scene, camera);
+
+
+
+</script>
+
+</body>
+</html>
